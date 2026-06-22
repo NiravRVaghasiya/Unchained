@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unchained-ai"
+version = "0.1.0"
+description = "A complete agentic AI framework in one file. No bloat. Just agents that work."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+keywords = ["ai", "agents", "llm", "rag", "multi-agent", "framework", "minimal"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "requests>=2.28.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
+]
+ui = [
+    "streamlit>=1.30.0",
+    "gradio>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/unchained"
+Documentation = "https://github.com/YOUR_USERNAME/unchained/tree/main/docs"
+Repository = "https://github.com/YOUR_USERNAME/unchained"
+Issues = "https://github.com/YOUR_USERNAME/unchained/issues"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
