@@ -66,7 +66,7 @@ print(agent.run("Find the latest AI news"))
 | 📚 RAG (TF-IDF + cosine, no vector DB) | ~70 | `VectorStoreRetriever` + `ChromaDB` + `HuggingFace embeddings` |
 | 🤝 Multi-agent routing | ~50 | `AgentExecutor` + routing chains |
 | 📋 Structured output (Pydantic) | ~40 | `PydanticOutputParser` + `OutputFixingParser` |
-| 🔌 LLM backends (OpenAI, Anthropic, Ollama) | ~70 | `ChatOpenAI`, `ChatAnthropic`, `ChatOllama` |
+| 🔌 LLM backends (OpenAI, Anthropic, Ollama, NVIDIA NIM) | ~70 | `ChatOpenAI`, `ChatAnthropic`, `ChatOllama` |
 | **Total** | **~400** | **200,000+** |
 
 ### Zero-Cost Stack (Ollama)
@@ -102,7 +102,7 @@ def web_search(query: str) -> str:
     data = resp.json()
     return data.get("AbstractText") or "No results."
 
-# Use any provider: "openai", "anthropic", or "ollama"
+# Use any provider: "openai", "anthropic", "nvidia", or "ollama"
 agent = Agent(name="researcher", tools=[web_search],
               llm=LLM(provider="openai", api_key="sk-..."))
 print(agent.run("What is retrieval augmented generation?"))
@@ -135,7 +135,7 @@ print(agent.run("Write code to find prime numbers under 50"))
 ```python
 from unchained import Agent, Router, LLM
 
-llm = LLM(provider="openai", api_key="sk-...")  # or "anthropic" / "ollama"
+llm = LLM(provider="openai", api_key="sk-...")  # or "anthropic" / "nvidia" / "ollama"
 
 researcher = Agent(name="researcher", llm=llm,
     system_prompt="You research topics thoroughly.")
@@ -160,15 +160,21 @@ print(router.route("Write a blog post about AI agents"))
 ```bash
 cd examples/pickmystack
 
-# OpenAI (recommended — uses OPENAI_API_KEY env var automatically)
+# OpenAI (uses OPENAI_API_KEY env var automatically)
 python app.py --provider openai --api-key sk-YOUR_KEY
 
 # Anthropic
 python app.py --provider anthropic --api-key YOUR_KEY
 
+# NVIDIA NIM (uses NVIDIA_API_KEY env var automatically)
+python app.py --provider nvidia --model nvidia/nemotron-3-ultra-550b-a55b --api-key nvapi-YOUR_KEY
+
 # Ollama — free & local (requires Ollama running: https://ollama.com/download)
 ollama pull llama3.2
 python app.py --provider ollama
+
+# Any other OpenAI-compatible endpoint
+python app.py --provider openai --base-url https://your-endpoint/v1 --api-key YOUR_KEY
 
 ```
 
@@ -176,9 +182,10 @@ python app.py --provider ollama
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `--provider` | `openai` | LLM backend: `openai`, `anthropic`, or `ollama` |
-| `--model` | provider default | Override the model (e.g. `gpt-4o`, `claude-3-5-haiku-20241022`) |
-| `--api-key` | env var | API key (falls back to `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`) |
+| `--provider` | `openai` | LLM backend: `openai`, `anthropic`, `nvidia`, or `ollama` |
+| `--model` | provider default | Override the model (e.g. `gpt-4o`, `nvidia/nemotron-3-ultra-550b-a55b`) |
+| `--api-key` | env var | API key (falls back to `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `NVIDIA_API_KEY`) |
+| `--base-url` | provider default | Override base URL for any OpenAI-compatible endpoint |
 
 **Example output:**
 
@@ -222,7 +229,7 @@ Features:
 - Natural language input + constraint selectors (budget, team size, priorities)
 - Real-time progress bar as each agent evaluates
 - Expandable detailed analysis from each specialist agent
-- Works with OpenAI, Anthropic, or Ollama (free local)
+- Works with OpenAI, Anthropic, NVIDIA NIM, or Ollama (free local)
 - Deployable to Streamlit Cloud / HuggingFace Spaces for free
 
 ---
