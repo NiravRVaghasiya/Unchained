@@ -25,8 +25,8 @@ You want to build an agent...
 ## Quick Start
 
 ```bash
-git clone https://github.com/<username>/unchained.git
-cd unchained
+git clone https://github.com/NiravRVaghasiya/Unchained.git
+cd Unchained
 pip install -e .
 
 ```
