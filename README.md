@@ -41,8 +41,14 @@ def search(query: str) -> str:
     """Search the web."""
     return f"Results for: {query}"  # Replace with real implementation
 
+# OpenAI (cloud)
 agent = Agent(name="assistant", tools=[search],
-              llm=LLM(provider="ollama"))  # Free, local
+              llm=LLM(provider="openai", api_key="sk-..."))
+
+# — or — Ollama (free, local, requires https://ollama.com)
+agent = Agent(name="assistant", tools=[search],
+              llm=LLM(provider="ollama", model="llama3.2"))
+
 print(agent.run("Find the latest AI news"))
 
 ```
@@ -63,14 +69,16 @@ print(agent.run("Find the latest AI news"))
 | 🔌 LLM backends (OpenAI, Anthropic, Ollama) | ~70 | `ChatOpenAI`, `ChatAnthropic`, `ChatOllama` |
 | **Total** | **~400** | **200,000+** |
 
-### Zero-Cost Stack
+### Zero-Cost Stack (Ollama)
+
+> **Prerequisite:** [Install Ollama](https://ollama.com/download) and run `ollama pull llama3.2`
 
 ```python
 # Runs 100% free on your machine
 from unchained import Agent, LLM
 
 agent = Agent(
-    llm=LLM(provider="ollama", model="llama3.2"),  # Free
+    llm=LLM(provider="ollama", model="llama3.2"),  # Free, local
     # No API keys needed. No cloud. No bills.
 )
 
@@ -94,8 +102,9 @@ def web_search(query: str) -> str:
     data = resp.json()
     return data.get("AbstractText") or "No results."
 
+# Use any provider: "openai", "anthropic", or "ollama"
 agent = Agent(name="researcher", tools=[web_search],
-              llm=LLM(provider="ollama"))
+              llm=LLM(provider="openai", api_key="sk-..."))
 print(agent.run("What is retrieval augmented generation?"))
 
 ```
@@ -116,7 +125,7 @@ def run_code(code: str) -> str:
         return f"Error: {e}"
 
 agent = Agent(name="coder", tools=[run_code],
-              llm=LLM(provider="ollama"))
+              llm=LLM(provider="openai", api_key="sk-..."))
 print(agent.run("Write code to find prime numbers under 50"))
 
 ```
@@ -126,7 +135,7 @@ print(agent.run("Write code to find prime numbers under 50"))
 ```python
 from unchained import Agent, Router, LLM
 
-llm = LLM(provider="ollama")
+llm = LLM(provider="openai", api_key="sk-...")  # or "anthropic" / "ollama"
 
 researcher = Agent(name="researcher", llm=llm,
     system_prompt="You research topics thoroughly.")
@@ -146,11 +155,32 @@ print(router.route("Write a blog post about AI agents"))
 
 **The flagship app built on Unchained** — an AI framework advisor that helps developers choose the right stack.
 
+### Running PickMyStack
+
 ```bash
 cd examples/pickmystack
-python app.py
+
+# OpenAI (recommended — uses OPENAI_API_KEY env var automatically)
+python app.py --provider openai --api-key sk-YOUR_KEY
+
+# Anthropic
+python app.py --provider anthropic --api-key YOUR_KEY
+
+# Ollama — free & local (requires Ollama running: https://ollama.com/download)
+ollama pull llama3.2
+python app.py --provider ollama
 
 ```
+
+**CLI flags:**
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--provider` | `openai` | LLM backend: `openai`, `anthropic`, or `ollama` |
+| `--model` | provider default | Override the model (e.g. `gpt-4o`, `claude-3-5-haiku-20241022`) |
+| `--api-key` | env var | API key (falls back to `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`) |
+
+**Example output:**
 
 ```
 > Build a customer support chatbot, budget $0, solo developer
@@ -192,7 +222,7 @@ Features:
 - Natural language input + constraint selectors (budget, team size, priorities)
 - Real-time progress bar as each agent evaluates
 - Expandable detailed analysis from each specialist agent
-- Works with Ollama (free) or cloud APIs
+- Works with OpenAI, Anthropic, or Ollama (free local)
 - Deployable to Streamlit Cloud / HuggingFace Spaces for free
 
 ---

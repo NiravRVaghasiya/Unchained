@@ -7,6 +7,7 @@ based on user constraints (cost, complexity, scale, goals).
 """
 import os
 import sys
+import argparse
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
@@ -88,14 +89,28 @@ def create_pickmystack_agents(llm: LLM) -> Router:
     )
 
 
-def run_pickmystack(user_query: str, provider: str = "ollama",
-                    model: str = "llama3.2", api_key: str = None) -> str:
+def run_pickmystack(user_query: str, provider: str = "openai",
+                    model: str = None, api_key: str = None) -> str:
     """Run the full PickMyStack evaluation pipeline."""
-    llm = LLM(provider=provider, model=model, api_key=api_key)
-    router = create_pickmystack_agents(llm)
+    try:
+        llm = LLM(provider=provider, model=model, api_key=api_key)
+        router = create_pickmystack_agents(llm)
 
-    # Run ALL agents and synthesize (not just route to one)
-    results = router.run_all(user_query)
+        # Run ALL agents and synthesize (not just route to one)
+        results = router.run_all(user_query)
+    except Exception as e:
+        err = str(e)
+        if "10061" in err or "Connection refused" in err or "NewConnectionError" in err:
+            if provider == "ollama":
+                print("\n[ERROR] Cannot connect to Ollama on localhost:11434.")
+                print("  → Make sure Ollama is installed and running:")
+                print("      https://ollama.com/download")
+                print("  → Then pull a model:  ollama pull llama3.2")
+                print("  → Or switch provider: python app.py --provider openai --api-key YOUR_KEY")
+            else:
+                print(f"\n[ERROR] Connection refused when contacting {provider}: {e}")
+            sys.exit(1)
+        raise
 
     # Final synthesis pass
     synthesis_prompt = (
@@ -111,9 +126,28 @@ def run_pickmystack(user_query: str, provider: str = "ollama",
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="PickMyStack — AI Framework Advisor")
+    parser.add_argument("--provider", default="openai",
+                        choices=["openai", "anthropic", "ollama"],
+                        help="LLM provider to use (default: openai)")
+    parser.add_argument("--model", default=None,
+                        help="Model name (uses provider default if not set)")
+    parser.add_argument("--api-key", default=None,
+                        help="API key (or set OPENAI_API_KEY / ANTHROPIC_API_KEY env var)")
+    args = parser.parse_args()
+
+    # Fall back to environment variables for API keys
+    api_key = args.api_key
+    if api_key is None:
+        if args.provider == "openai":
+            api_key = os.environ.get("OPENAI_API_KEY")
+        elif args.provider == "anthropic":
+            api_key = os.environ.get("ANTHROPIC_API_KEY")
+
     print("=" * 60)
     print("  PickMyStack.ai — AI Framework Advisor")
     print("  Powered by Unchained")
+    print(f"  Provider: {args.provider}" + (f"  |  Model: {args.model}" if args.model else ""))
     print("=" * 60)
     print()
 
@@ -121,5 +155,6 @@ if __name__ == "__main__":
                   "chatbot, budget $50/month, solo developer'):\n> ")
 
     print("\nAnalyzing with multi-agent evaluation pipeline...\n")
-    result = run_pickmystack(query)
+    result = run_pickmystack(query, provider=args.provider,
+                             model=args.model, api_key=api_key)
     print(result)
