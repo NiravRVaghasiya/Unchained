@@ -90,10 +90,11 @@ def create_pickmystack_agents(llm: LLM) -> Router:
 
 
 def run_pickmystack(user_query: str, provider: str = "openai",
-                    model: str = None, api_key: str = None) -> str:
+                    model: str = None, api_key: str = None,
+                    base_url: str = None) -> str:
     """Run the full PickMyStack evaluation pipeline."""
     try:
-        llm = LLM(provider=provider, model=model, api_key=api_key)
+        llm = LLM(provider=provider, model=model, api_key=api_key, base_url=base_url)
         router = create_pickmystack_agents(llm)
 
         # Run ALL agents and synthesize (not just route to one)
@@ -128,12 +129,14 @@ def run_pickmystack(user_query: str, provider: str = "openai",
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="PickMyStack — AI Framework Advisor")
     parser.add_argument("--provider", default="openai",
-                        choices=["openai", "anthropic", "ollama"],
+                        choices=["openai", "anthropic", "ollama", "nvidia"],
                         help="LLM provider to use (default: openai)")
     parser.add_argument("--model", default=None,
                         help="Model name (uses provider default if not set)")
     parser.add_argument("--api-key", default=None,
                         help="API key (or set OPENAI_API_KEY / ANTHROPIC_API_KEY env var)")
+    parser.add_argument("--base-url", default=None,
+                        help="Override the API base URL (for custom/compatible endpoints)")
     args = parser.parse_args()
 
     # Fall back to environment variables for API keys
@@ -143,6 +146,8 @@ if __name__ == "__main__":
             api_key = os.environ.get("OPENAI_API_KEY")
         elif args.provider == "anthropic":
             api_key = os.environ.get("ANTHROPIC_API_KEY")
+        elif args.provider == "nvidia":
+            api_key = os.environ.get("NVIDIA_API_KEY")
 
     print("=" * 60)
     print("  PickMyStack.ai — AI Framework Advisor")
@@ -156,5 +161,6 @@ if __name__ == "__main__":
 
     print("\nAnalyzing with multi-agent evaluation pipeline...\n")
     result = run_pickmystack(query, provider=args.provider,
-                             model=args.model, api_key=api_key)
+                             model=args.model, api_key=api_key,
+                             base_url=args.base_url)
     print(result)

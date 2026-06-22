@@ -88,6 +88,7 @@ class LLM:
         "openai": ("gpt-4o-mini", "https://api.openai.com/v1"),
         "anthropic": ("claude-3-5-haiku-20241022", "https://api.anthropic.com"),
         "ollama": ("llama3.2", "http://localhost:11434"),
+        "nvidia": ("nvidia/llama-3.1-nemotron-ultra-253b-v1", "https://integrate.api.nvidia.com/v1"),
     }
 
     def __init__(self, provider: str = "openai", model: Optional[str] = None,
@@ -103,7 +104,7 @@ class LLM:
              response_format: Optional[dict] = None) -> dict:
         """Send messages and return response with potential tool calls."""
         dispatch = {"openai": self._openai, "anthropic": self._anthropic,
-                    "ollama": self._ollama}
+                    "ollama": self._ollama, "nvidia": self._openai}
         if self.provider not in dispatch:
             raise ValueError(f"Unknown provider: {self.provider}")
         return dispatch[self.provider](messages, tools, response_format)
